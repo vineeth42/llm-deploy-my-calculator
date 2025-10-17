@@ -1,21 +1,12 @@
 /*
   Black & White Calculator Styles
-  - Strict monochrome palette for a clean aesthetic
-  - Responsive grid-based layout
+  - Pure black (#000) and white (#fff) color scheme
+  - Clean, minimal, responsive layout
 */
 
-:root {
-  --bg: #000;        /* black */
-  --fg: #fff;        /* white */
-  --muted: #fff;     /* keep to white for borders in monochrome */
-  --key-bg: #fff;    /* key background */
-  --key-fg: #000;    /* key text */
-  --op-bg: #000;     /* operator background (inverse) */
-  --op-fg: #fff;     /* operator text */
-  --focus: #fff;     /* focus ring */
+* {
+  box-sizing: border-box;
 }
-
-* { box-sizing: border-box; }
 
 html, body {
   height: 100%;
@@ -23,85 +14,54 @@ html, body {
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background: #000;
+  color: #fff;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  gap: 1rem;
+  place-items: center;
 }
 
-.app-header {
-  text-align: center;
-  padding-top: 1rem;
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
-.app-header h1 {
-  margin: 0.25rem 0 0;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-
-.subtitle {
-  margin: 0.25rem 0 0.5rem;
-  color: var(--fg);
-  opacity: 0.8;
-  font-size: 0.9rem;
-}
-
-.image-panel {
-  display: flex;
-  justify-content: center;
-}
-
-.image-panel figure {
-  margin: 0;
-  border: 2px solid var(--fg);
-  padding: 0.5rem;
-  max-width: min(720px, 92vw);
-}
-
-.image-panel img {
-  display: block;
-  width: 100%;
-  height: auto;
-  background: #111;
-}
-
-#image-caption {
-  font-size: 0.85rem;
-  padding-top: 0.25rem;
-  word-break: break-all;
+.app {
+  width: min(92vw, 380px);
 }
 
 .calculator {
-  max-width: 420px;
-  margin: 0 auto;
-  width: 92vw;
-  border: 2px solid var(--fg);
+  border: 2px solid #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
 }
 
 .display {
-  border-bottom: 2px solid var(--fg);
-  padding: 0.75rem;
+  border-bottom: 2px solid #fff;
+  padding: 18px 16px;
+  background: #000;
 }
 
-.history {
-  min-height: 1.2rem;
-  opacity: 0.8;
-  font-size: 0.9rem;
-  text-align: right;
-}
-
-.display-input {
+#display {
+  display: block;
   width: 100%;
-  background: transparent;
-  color: var(--fg);
-  border: 0;
-  outline: 0;
   text-align: right;
-  font-size: 2.25rem;
-  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(24px, 8vw, 40px);
+  line-height: 1.2;
+  min-height: 1.2em;
+  color: #fff;
+  outline: none;
+  overflow: hidden;
+  user-select: none;
 }
 
 .keys {
@@ -111,52 +71,65 @@ body {
 
 .key {
   appearance: none;
-  border: 0;
-  margin: 0;
-  padding: 1.1rem 0.5rem;
-  background: var(--key-bg);
-  color: var(--key-fg);
-  font-size: 1.25rem;
-  font-weight: 700;
-  border-right: 2px solid var(--bg);
-  border-bottom: 2px solid var(--bg);
+  border: 2px solid #000;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  font-size: clamp(16px, 4.2vw, 22px);
+  padding: 16px 12px;
   cursor: pointer;
-}
-
-.key:focus-visible {
-  outline: 2px dashed var(--focus);
-  outline-offset: -6px;
+  line-height: 1.1;
+  transition: background 0.1s ease, color 0.1s ease, border-color 0.1s ease, transform 0.02s ease;
 }
 
 .key:active {
-  filter: invert(1);
+  transform: translateY(1px);
 }
 
-.key-op {
-  background: var(--op-bg);
-  color: var(--op-fg);
-  border-right-color: var(--fg);
-}
-
-.key-action {
+/* Operator & equals keys inverted for contrast */
+.key.op {
   background: #000;
   color: #fff;
+  border-color: #fff;
 }
 
-.key-equals {
+.key.equals {
   background: #000;
   color: #fff;
+  border-color: #fff;
 }
 
-.key-zero {
+/* Function keys (AC, ±, %) keep white to differentiate */
+.key.fn {
+  background: #fff;
+  color: #000;
+}
+
+/* Hover/focus interaction: invert for clear affordance, stay B/W */
+.key:hover,
+.key:focus-visible {
+  background: #000;
+  color: #fff;
+  border-color: #fff;
+  outline: none;
+}
+
+.key.op:hover,
+.key.op:focus-visible,
+.key.equals:hover,
+.key.equals:focus-visible {
+  background: #fff;
+  color: #000;
+  border-color: #000;
+}
+
+.zero {
   grid-column: span 2;
 }
 
-.app-footer {
-  text-align: center;
-  font-size: 0.85rem;
-  opacity: 0.8;
-  padding-bottom: 1rem;
+.hint {
+  margin: 10px 12px 14px;
+  color: #fff;
+  opacity: 1;
+  font-size: 12px;
 }
-
-code { color: var(--fg); }
