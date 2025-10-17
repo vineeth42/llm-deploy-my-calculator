@@ -3,67 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Minimal black and white calculator built with vanilla HTML, CSS, and JavaScript." />
   <title>Black & White Calculator</title>
-  <meta name="description" content="A minimal black & white calculator with image support via ?url= query parameter." />
   <link rel="stylesheet" href="style.css" />
+  <script defer src="script.js"></script>
 </head>
 <body>
-  <header class="app-header">
-    <h1>Calculator</h1>
-    <p class="subtitle">Black & White • No frameworks</p>
-  </header>
+  <main class="app" role="application" aria-label="Calculator">
+    <h1 class="visually-hidden">Black & White Calculator</h1>
 
-  <!-- Optional image panel populated via the `?url=` query parameter -->
-  <section class="image-panel" id="image-panel" hidden>
-    <figure>
-      <img id="external-image" alt="External image provided via url parameter" referrerpolicy="no-referrer" />
-      <figcaption id="image-caption">Image from: <span id="image-url"></span></figcaption>
-    </figure>
-  </section>
+    <section class="calculator" aria-label="Calculator body">
+      <div class="display" aria-live="polite" aria-atomic="true">
+        <output id="display" tabindex="0">0</output>
+      </div>
 
-  <main class="calculator" role="application" aria-label="Calculator">
-    <div class="display" aria-live="polite">
-      <div id="history" class="history" aria-hidden="true"></div>
-      <input id="display" class="display-input" type="text" value="0" readonly aria-label="Calculator display" />
-    </div>
+      <div class="keys" role="group" aria-label="Calculator keys">
+        <button type="button" class="key fn" data-action="clear" aria-label="All clear">AC</button>
+        <button type="button" class="key fn" data-action="sign" aria-label="Toggle sign">±</button>
+        <button type="button" class="key fn" data-action="percent" aria-label="Percent">%</button>
+        <button type="button" class="key op" data-action="operator" data-operator="/" aria-label="Divide">÷</button>
 
-    <div class="keys" id="keys">
-      <!-- Row 1 -->
-      <button class="key key-action" data-action="clear" aria-label="Clear">C</button>
-      <button class="key key-action" data-action="backspace" aria-label="Backspace">⌫</button>
-      <button class="key key-op" data-action="operator" data-op="/" aria-label="Divide">÷</button>
-      <button class="key key-op" data-action="operator" data-op="*" aria-label="Multiply">×</button>
+        <button type="button" class="key" data-action="digit" data-digit="7">7</button>
+        <button type="button" class="key" data-action="digit" data-digit="8">8</button>
+        <button type="button" class="key" data-action="digit" data-digit="9">9</button>
+        <button type="button" class="key op" data-action="operator" data-operator="*" aria-label="Multiply">×</button>
 
-      <!-- Row 2 -->
-      <button class="key" data-action="digit" data-digit="7">7</button>
-      <button class="key" data-action="digit" data-digit="8">8</button>
-      <button class="key" data-action="digit" data-digit="9">9</button>
-      <button class="key key-op" data-action="operator" data-op="-" aria-label="Subtract">−</button>
+        <button type="button" class="key" data-action="digit" data-digit="4">4</button>
+        <button type="button" class="key" data-action="digit" data-digit="5">5</button>
+        <button type="button" class="key" data-action="digit" data-digit="6">6</button>
+        <button type="button" class="key op" data-action="operator" data-operator="-" aria-label="Subtract">−</button>
 
-      <!-- Row 3 -->
-      <button class="key" data-action="digit" data-digit="4">4</button>
-      <button class="key" data-action="digit" data-digit="5">5</button>
-      <button class="key" data-action="digit" data-digit="6">6</button>
-      <button class="key key-op" data-action="operator" data-op="+" aria-label="Add">+</button>
+        <button type="button" class="key" data-action="digit" data-digit="1">1</button>
+        <button type="button" class="key" data-action="digit" data-digit="2">2</button>
+        <button type="button" class="key" data-action="digit" data-digit="3">3</button>
+        <button type="button" class="key op" data-action="operator" data-operator="+" aria-label="Add">+</button>
 
-      <!-- Row 4 -->
-      <button class="key" data-action="digit" data-digit="1">1</button>
-      <button class="key" data-action="digit" data-digit="2">2</button>
-      <button class="key" data-action="digit" data-digit="3">3</button>
-      <button class="key key-equals" data-action="equals" aria-label="Equals">=</button>
+        <button type="button" class="key zero" data-action="digit" data-digit="0">0</button>
+        <button type="button" class="key" data-action="dot" aria-label="Decimal point">.</button>
+        <button type="button" class="key op equals" data-action="equals" aria-label="Equals">=</button>
+      </div>
 
-      <!-- Row 5 -->
-      <button class="key key-zero" data-action="digit" data-digit="0">0</button>
-      <button class="key" data-action="decimal" aria-label="Decimal">.</button>
-      <button class="key" data-action="negate" aria-label="Toggle Sign">+∕−</button>
-      <button class="key" data-action="percent" aria-label="Percent">%</button>
-    </div>
+      <p class="hint">Tip: Use your keyboard — digits 0–9, ., +, -, *, /, Enter(=), Backspace(⌫), Esc(AC), and %.</p>
+    </section>
   </main>
-
-  <footer class="app-footer">
-    <p>Tip: Provide an image via <code>?url=</code> in the address bar. Example: <code>?url=https%3A%2F%2Fexample.com%2Fimage.jpg</code></p>
-  </footer>
-
-  <script src="script.js" defer></script>
 </body>
 </html>
