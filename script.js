@@ -2,231 +2,247 @@
 
 /*
   Black & White Calculator Logic
-  - Safe image loader from ?url= query parameter (http/https or data:image)
-  - Simple 2-operand calculator (no eval)
-  - Keyboard support for common keys
+  - Vanilla JS, no dependencies
+  - Keyboard and click/tap support
+  - Clean state machine: current, previous, operator
 */
 
-// ============= Image loader from ?url= parameter =============
-(function setupImageFromQuery() {
-  const params = new URLSearchParams(window.location.search);
-  const url = params.get('url');
-  if (!url) return;
+(function () {
+  const display = document.getElementById('display');
+  const keys = document.querySelector('.keys');
 
-  const isAllowedUrl = (raw) => {
-    try {
-      const parsed = new URL(raw, window.location.href);
-      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return true;
-      if (parsed.protocol === 'data:' && raw.startsWith('data:image/')) return true;
-      return false;
-    } catch (_) {
-      return false;
-    }
+  const state = {
+    current: '0',     // current entry as string
+    prev: null,       // previous operand as string
+    operator: null,   // '+', '-', '*', '/'
+    overwrite: true,  // whether next digit should overwrite
+    lastOp: null,     // for repeated equals
+    lastNum: null,
   };
 
-  const panel = document.getElementById('image-panel');
-  const img = document.getElementById('external-image');
-  const urlLabel = document.getElementById('image-url');
-
-  panel.hidden = false;
-
-  if (!isAllowedUrl(url)) {
-    urlLabel.textContent = '[blocked: invalid or unsafe URL]';
-    img.alt = 'Blocked image URL';
-    img.style.display = 'none';
-    return;
-  }
-
-  img.style.display = 'block';
-  img.src = url;
-  urlLabel.textContent = url;
-})();
-
-// ==================== Calculator ====================
-(function calculator() {
-  const display = document.getElementById('display');
-  const history = document.getElementById('history');
-  const keys = document.getElementById('keys');
-
-  let current = '0';
-  let previous = null; // number
-  let operator = null; // '+', '-', '*', '/'
-  let justEvaluated = false;
-
-  const MAX_LEN = 16;
-
-  function updateDisplay() {
-    display.value = current;
-    const hist = (previous !== null && operator) ? `${trimNum(previous)} ${symbol(operator)}` : '';
-    history.textContent = hist;
-  }
-
-  function symbol(op) {
-    switch (op) {
-      case '+': return '+';
-      case '-': return '−';
-      case '*': return '×';
-      case '/': return '÷';
-      default: return op || '';
-    }
-  }
-
-  function trimNum(n) {
-    // Format number to avoid long floating point tails
-    const asNum = typeof n === 'number' ? n : parseFloat(n);
-    if (!isFinite(asNum)) return 'Error';
-
-    // Use up to 12 significant digits, then remove trailing zeros
-    let s = asNum.toPrecision(12);
-    // Convert to normal notation if exponential with small exponent
-    if (s.includes('e')) {
-      const maybe = Number(asNum.toFixed(12));
-      if (Number.isFinite(maybe) && String(maybe).length <= 16) s = String(maybe);
-    }
-    // Strip trailing zeros and optional dot
-    if (s.includes('.')) s = s.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
-    return s;
-  }
-
-  function setCurrentFromNumber(n) {
-    current = trimNum(n);
-  }
-
-  function inputDigit(d) {
-    if (justEvaluated && !operator) {
-      // start fresh after equals
-      current = '0';
-      justEvaluated = false;
-    }
-    if (current === '0') current = d; else current += d;
-    if (current.length > MAX_LEN) current = current.slice(0, MAX_LEN);
-  }
-
-  function inputDecimal() {
-    if (justEvaluated && !operator) {
-      current = '0';
-      justEvaluated = false;
-    }
-    if (!current.includes('.')) current += '.';
+  function updateDisplay(valueStr = state.current) {
+    display.textContent = valueStr;
   }
 
   function clearAll() {
-    current = '0';
-    previous = null;
-    operator = null;
-    justEvaluated = false;
+    state.current = '0';
+    state.prev = null;
+    state.operator = null;
+    state.overwrite = true;
+    state.lastOp = null;
+    state.lastNum = null;
+    updateDisplay();
   }
 
-  function backspace() {
-    if (justEvaluated && !operator) return; // ignore after equals
-    if (current.length <= 1 || (current.length === 2 && current.startsWith('-'))) current = '0';
-    else current = current.slice(0, -1);
+  function inputDigit(d) {
+    if (!/^[0-9]$/.test(d)) return;
+    if (state.overwrite || state.current === '0') {
+      state.current = d;
+      state.overwrite = false;
+    } else {
+      if (state.current.replace('-', '').length >= 16) return; // prevent overflow
+      state.current += d;
+    }
+    updateDisplay();
   }
 
-  function negate() {
-    if (current === '0') return;
-    current = current.startsWith('-') ? current.slice(1) : '-' + current;
+  function inputDot() {
+    if (state.overwrite) {
+      state.current = '0.';
+      state.overwrite = false;
+    } else if (!state.current.includes('.')) {
+      state.current += '.';
+    }
+    updateDisplay();
+  }
+
+  function toggleSign() {
+    if (state.current === '0') return; // -0 not needed visually
+    state.current = state.current.startsWith('-')
+      ? state.current.slice(1)
+      : '-' + state.current;
+    updateDisplay();
   }
 
   function percent() {
-    const num = parseFloat(current);
-    if (!isFinite(num)) return;
-    // Classic simple percent: divide by 100
-    setCurrentFromNumber(num / 100);
+    // Simple percent: divide current entry by 100
+    const n = parseFloat(state.current);
+    if (Number.isNaN(n)) return;
+    state.current = trimNumber(n / 100);
+    updateDisplay();
   }
 
-  function setOperator(op) {
-    if (operator && !justEvaluated) {
-      // Chain operations
-      evaluate();
-    }
-    previous = parseFloat(current);
-    operator = op;
-    justEvaluated = false;
-    current = '0';
-  }
-
-  function evaluate() {
-    if (operator === null || previous === null) return;
-    const a = previous;
-    const b = parseFloat(current);
-
-    let result;
-    switch (operator) {
-      case '+': result = a + b; break;
-      case '-': result = a - b; break;
-      case '*': result = a * b; break;
-      case '/': result = (b === 0) ? Infinity : a / b; break;
-      default: return;
-    }
-
-    if (!isFinite(result)) {
-      current = 'Error';
-      previous = null;
-      operator = null;
-      justEvaluated = false;
+  function deleteDigit() {
+    if (state.overwrite) {
+      state.current = '0';
       updateDisplay();
       return;
     }
-
-    setCurrentFromNumber(result);
-    previous = null;
-    operator = null;
-    justEvaluated = true;
+    const s = state.current;
+    if (s.length <= 1 || (s.length === 2 && s.startsWith('-'))) {
+      state.current = '0';
+      state.overwrite = true;
+    } else {
+      state.current = s.slice(0, -1);
+    }
+    updateDisplay();
   }
 
-  // Click handling via event delegation
+  function setOperator(op) {
+    if (!['+', '-', '*', '/'].includes(op)) return;
+
+    if (state.operator && !state.overwrite) {
+      // If chaining operations, compute existing first
+      compute();
+    }
+
+    state.prev = state.current;
+    state.operator = op;
+    state.overwrite = true;
+  }
+
+  function compute(repeat = false) {
+    let a, b, op;
+
+    if (!repeat) {
+      if (state.operator == null || state.prev == null) return;
+      a = parseFloat(state.prev);
+      b = parseFloat(state.current);
+      op = state.operator;
+      state.lastOp = op;
+      state.lastNum = b;
+    } else {
+      if (state.lastOp == null || state.lastNum == null) return;
+      a = parseFloat(state.current);
+      b = parseFloat(state.lastNum);
+      op = state.lastOp;
+    }
+
+    if ([a, b].some(Number.isNaN)) return;
+
+    let result;
+    switch (op) {
+      case '+': result = a + b; break;
+      case '-': result = a - b; break;
+      case '*': result = a * b; break;
+      case '/':
+        if (b === 0) {
+          // Division by zero -> error state, clear
+          flashError('Error');
+          clearAll();
+          return;
+        }
+        result = a / b; break;
+      default: return;
+    }
+
+    const out = trimNumber(result);
+    state.current = out;
+    state.prev = null;
+    state.operator = null;
+    state.overwrite = true;
+    updateDisplay();
+  }
+
+  function equals() {
+    if (state.operator != null) {
+      compute(false);
+    } else {
+      compute(true); // repeated equals behavior
+    }
+  }
+
+  function trimNumber(n) {
+    // Keep precision reasonable and strip trailing zeros
+    const str = Number(n).toFixed(12); // 12 dp rounding
+    // Remove trailing zeros and dot
+    return str.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
+  }
+
+  function flashError(msg) {
+    updateDisplay(msg);
+    // brief visual cue without leaving error on display
+    setTimeout(() => updateDisplay(), 600);
+  }
+
+  // Click handling
   keys.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
 
     const action = btn.dataset.action;
+
     switch (action) {
       case 'digit':
         inputDigit(btn.dataset.digit);
         break;
-      case 'decimal':
-        inputDecimal();
+      case 'dot':
+        inputDot();
         break;
       case 'operator':
-        setOperator(btn.dataset.op);
+        setOperator(btn.dataset.operator);
         break;
       case 'equals':
-        evaluate();
+        equals();
         break;
       case 'clear':
         clearAll();
         break;
-      case 'backspace':
-        backspace();
-        break;
-      case 'negate':
-        negate();
+      case 'sign':
+        toggleSign();
         break;
       case 'percent':
         percent();
         break;
-      default:
-        return;
     }
-    updateDisplay();
   });
 
   // Keyboard support
   window.addEventListener('keydown', (e) => {
-    const k = e.key;
+    const { key } = e;
 
-    if (/^\d$/.test(k)) { inputDigit(k); e.preventDefault(); }
-    else if (k === '.') { inputDecimal(); e.preventDefault(); }
-    else if (k === '+' || k === '-' || k === '*' || k === '/') { setOperator(k); e.preventDefault(); }
-    else if (k === 'Enter' || k === '=') { evaluate(); e.preventDefault(); }
-    else if (k === 'Backspace') { backspace(); e.preventDefault(); }
-    else if (k === 'Escape' || k.toLowerCase() === 'c') { clearAll(); e.preventDefault(); }
-    else if (k === '%') { percent(); e.preventDefault(); }
+    if (/[0-9]/.test(key)) {
+      e.preventDefault();
+      inputDigit(key);
+      return;
+    }
 
-    updateDisplay();
+    switch (key) {
+      case '.':
+        e.preventDefault();
+        inputDot();
+        break;
+      case '+':
+      case '-':
+      case '*':
+      case '/':
+        e.preventDefault();
+        setOperator(key);
+        break;
+      case 'Enter':
+      case '=':
+        e.preventDefault();
+        equals();
+        break;
+      case 'Backspace':
+        e.preventDefault();
+        deleteDigit();
+        break;
+      case 'Escape':
+      case 'Delete':
+        e.preventDefault();
+        clearAll();
+        break;
+      case '%':
+        e.preventDefault();
+        percent();
+        break;
+      default:
+        // ignore other keys
+        break;
+    }
   });
 
-  // Initialize display
+  // Initialize
   updateDisplay();
 })();
