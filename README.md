@@ -1,48 +1,47 @@
 # Black & White Calculator
 
-A minimal, framework-free calculator web app with a crisp black and white theme. It also supports displaying an external image provided via the `?url=` query parameter.
+A minimal, accessible calculator built with vanilla HTML, CSS, and JavaScript. The interface uses a pure black and white color scheme and supports both mouse/touch and keyboard input.
 
 ## Summary
-- Clean monochrome UI (black background, white text; white buttons with black text).
-- Basic operations: add, subtract, multiply, divide, percent, sign toggle, decimal, backspace, clear, equals.
-- Keyboard support for digits, decimal, operators (+ − × ÷ as + - * /), Enter/Equals, Backspace, Escape, and %.
-- Displays an image from the `?url=` parameter (http/https or data:image) with simple safety checks.
-- Self-contained: vanilla HTML, CSS, and JavaScript. No external dependencies.
+- Color scheme: black and white only
+- Features: add, subtract, multiply, divide, percent, sign toggle, decimal, clear, delete (via Backspace), repeated equals
+- Keyboard support: 0–9, ., +, -, *, /, Enter (=), Backspace (⌫), Esc (AC), %
+- Self-contained: no external dependencies or frameworks
 
 ## Setup
-1. Clone or download this repository.
-2. Open `index.html` in any modern web browser.
+1. Download or clone the repository.
+2. No build steps are required.
+3. Open `index.html` in any modern web browser.
 
-No build steps or package installations are necessary.
+Optional: Serve the folder with a simple static server for best results.
+- Python 3: `python -m http.server`
+- Node (npx): `npx serve` (if you have serve installed)
 
 ## Usage
-- Click buttons or use your keyboard:
-  - Digits: 0–9
+- Click or tap the on-screen buttons to enter numbers and operations.
+- Use your keyboard for faster input:
+  - Digits: `0–9`
   - Decimal: `.`
   - Operators: `+`, `-`, `*`, `/`
   - Equals: `Enter` or `=`
-  - Backspace: `Backspace`
-  - Clear: `Escape` (or click `C`)
-  - Percent: `%`
-  - Toggle Sign: click `+∕−`
+  - Clear all: `Esc` or `Delete`
+  - Delete one digit: `Backspace`
+  - Percent: `%` (divides current entry by 100)
+  - Toggle sign: click the `±` button
 
-- Display an external image by appending `?url=...` to the page URL. Examples:
-  - Local file with remote image: `index.html?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1503023345310-bd7c1de61c7d`
-  - Data URI (must start with `data:image/`): `index.html?url=data:image%2Fpng;base64,iVBORw0KGgo...`
-
-Note: For safety, only `http:`, `https:`, and `data:image/...` URLs are allowed. Other schemes are blocked.
+Notes:
+- Division by zero is prevented and will momentarily show "Error".
+- Repeated equals is supported (press `=` multiple times to repeat the last operation).
 
 ## Project Structure
-- `index.html` – Markup for the calculator and image panel.
-- `style.css` – Monochrome, responsive styles.
-- `script.js` – Calculator logic, keyboard support, and image loader.
+- `index.html` – Markup for the calculator UI
+- `style.css` – Pure black & white styling, responsive layout
+- `script.js` – Calculator logic, state handling, and keyboard support
 
 ## License
-MIT License. See below for full text.
+This project is licensed under the MIT License.
 
-MIT License
-
-Copyright (c) 2025 Your Name
+Copyright (c) 2025 Calculator App Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
